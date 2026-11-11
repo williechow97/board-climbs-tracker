@@ -18,7 +18,7 @@ BOARD_FIELDS = ["board", "angle", "climb_name", "date", "logged_grade", "display
                 "is_repeat", "is_ascent", "comment"]
 FIELDS = ["record_id", *BOARD_FIELDS]
 TABS = ["Climbs", "Overview", "Progression", "Grade Pyramid", "Angles"]
-GRADE_RE = re.compile(r"^V(\\d+)([+-]?)$", re.I)
+GRADE_RE = re.compile(r"^V(\d+)([+-]?)$", re.I)
 
 
 def as_bool(value: Any) -> bool | str:
