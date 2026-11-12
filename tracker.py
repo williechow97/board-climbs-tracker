@@ -1,6 +1,6 @@
 """Weekly Kilter + Tension Board logbook sync and climbing analytics."""
 from __future__ import annotations
-import csv, hashlib, json, logging, os, re, subprocess, sys
+import csv, hashlib, importlib.metadata, inspect, json, logging, os, re, subprocess, sys
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -149,7 +149,28 @@ def collect(workdir: Path) -> list[dict[str, Any]]:
     tension_db = workdir / "tension.db"
     run("logbook", "kilter", "--username", ku, "--output", str(kilter_csv))
     run("database", "tension", str(tension_db), "--username", tu)
-    run("logbook", "tension", "--username", tu, "--output", str(tension_csv), "--database-path", str(tension_db))
+    try:
+        run("logbook", "tension", "--username", tu, "--output", str(tension_csv), "--database-path", str(tension_db))
+    except subprocess.CalledProcessError:
+        # BoardLib's Tension logbook currently fails inside its pandas processing
+        # for this account. Emit safe runtime diagnostics so we can identify the
+        # installed code/version without exposing credentials or climb details.
+        try:
+            import pandas
+            import boardlib.api.aurora as aurora
+            LOG.error("Tension diagnostics: boardlib=%s pandas=%s",
+                      importlib.metadata.version("boardlib"), pandas.__version__)
+            LOG.error("Tension diagnostics: aurora module=%s", aurora.__file__)
+            source = inspect.getsource(aurora.logbook_entries).splitlines()
+            interesting = [i for i, line in enumerate(source)
+                           if "full_logbook_df" in line or ".groupby(" in line]
+            if interesting:
+                lo, hi = max(0, min(interesting) - 4), min(len(source), max(interesting) + 5)
+                LOG.error("Tension diagnostics: installed logbook_entries source:\\n%s",
+                          "\\n".join(f"{i + 1}: {source[i]}" for i in range(lo, hi)))
+        except Exception:
+            LOG.exception("Unable to collect safe BoardLib runtime diagnostics")
+        raise
     return read_logbook(kilter_csv) + read_logbook(tension_csv)
 
 
