@@ -1,4 +1,7 @@
 boardlib==0.16.0
+# BoardLib 0.16.0 uses groupby.apply in a way that loses grouping
+# columns with pandas 3.x, breaking Tension logbook generation.
+pandas>=2.2,<3.0
 google-auth>=2.30,<3
 google-api-python-client>=2.150,<3
 python-dotenv>=1.0,<2
