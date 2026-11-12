@@ -33,6 +33,7 @@ jobs:
         env:
           KILTER_USERNAME: ${{ secrets.KILTER_USERNAME }}
           KILTER_PASSWORD: ${{ secrets.KILTER_PASSWORD }}
+          SECRET_TEST: ${{ secrets.SECRET_TEST }}
         run: |
           if [ -n "$KILTER_USERNAME" ]; then
             echo "KILTER_USERNAME: SET"
@@ -44,6 +45,12 @@ jobs:
             echo "KILTER_PASSWORD: SET"
           else
             echo "KILTER_PASSWORD: MISSING"
+          fi
+
+          if [ "$SECRET_TEST" = "hello123" ]; then
+            echo "SECRET_TEST: PASSED"
+          else
+            echo "SECRET_TEST: FAILED"
           fi
       - name: Sync board logbooks and update Google Sheets
         env:
